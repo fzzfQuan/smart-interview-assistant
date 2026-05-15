@@ -13,11 +13,15 @@ from config import settings
 @lru_cache(1)
 def _get_llm() -> ChatDeepSeek:
     """懒加载 LLM 实例（带缓存），避免无 API Key 时导入报错。"""
-    print('settings', settings, flush=True)
     return ChatDeepSeek(
         model=settings.deepseek_model,
         api_key=settings.deepseek_api_key,
-        temperature=0.7,
+        api_base="https://api.deepseek.com",
+        temperature=0.1,
+        model_kwargs={
+            "tool_choice": "auto",
+        },
+        extra_body={"thinking": {"type": "disabled"}},
     )
 
 

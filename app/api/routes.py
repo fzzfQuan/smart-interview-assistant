@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import json
 import uuid
 from pathlib import Path
@@ -43,8 +44,8 @@ def _init_routes(router: APIRouter, memory_manager: MemoryManager) -> None:
         current_user: User | None = Depends(get_current_user),
     ):
         """上传简历（PDF/DOCX/TXT），自动执行全部分析流程并返回结果。"""
-        # 如果已登录，使用认证用户的 ID
-        effective_user_id = str(current_user.id) if current_user else user_id
+        # 如果已登录，使用认证用户的 ID；未登录则生成临时 UUID
+        effective_user_id = str(current_user.id) if current_user else str(uuid.uuid4())
         allowed = {".pdf", ".docx", ".txt"}
         ext = Path(file.filename or "").suffix.lower()
         if ext not in allowed:
@@ -154,11 +155,20 @@ def _init_routes(router: APIRouter, memory_manager: MemoryManager) -> None:
 
                 last_state: AgentState | None = None
                 try:
-                    async for _node_name, state in graph.astream(initial_state):
+                    stream = graph.astream(initial_state)
+                    while True:
+                        state = await asyncio.wait_for(
+                            stream.__anext__(), timeout=300
+                        )
                         last_state = state
                         progress = state.get("progress")
                         if progress:
                             yield _sse("progress", progress)
+                except StopAsyncIteration:
+                    pass
+                except asyncio.TimeoutError:
+                    yield _sse("error", {"message": "分析超时，请稍后重试或检查简历内容是否过于复杂"})
+                    return
                 except Exception as e:
                     yield _sse("error", {"message": f"分析流程异常：{e}"})
                     return

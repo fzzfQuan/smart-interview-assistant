@@ -18,9 +18,14 @@ from config import settings
 def _get_llm() -> ChatDeepSeek:
     """懒加载 LLM 实例（带缓存），避免无 API Key 时导入报错。"""
     return ChatDeepSeek(
-        model=settings.deepseek_model,
+        model="deepseek-v4-flash",
         api_key=settings.deepseek_api_key,
-        temperature=0.2,
+        api_base="https://api.deepseek.com",
+        temperature=0.1,
+        model_kwargs={
+            "tool_choice": "auto",
+        },
+        extra_body={"thinking": {"type": "disabled"}},
     )
 
 

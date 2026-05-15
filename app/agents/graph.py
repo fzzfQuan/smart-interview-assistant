@@ -7,7 +7,7 @@ from langgraph.graph import END, StateGraph
 
 from app.agents.matching_analyst import analyze_match_node
 from app.agents.question_generator import generate_questions_node
-from app.agents.resume_parser import parse_resume_node
+from app.agents.resume_parser import create_parse_resume_node
 from app.agents.state import AgentState
 from app.memory.manager import MemoryManager
 
@@ -97,7 +97,7 @@ def build_graph(
 
     builder.add_node("load_pinned_context", load_pinned_context)
     builder.add_node("extract_text", extract_text)
-    builder.add_node("parse_resume", parse_resume_node)
+    builder.add_node("parse_resume", create_parse_resume_node(memory_manager.short_term))
     builder.add_node("analyze_match", analyze_match_node)
     builder.add_node("generate_questions", generate_questions_node)
     builder.add_node("save_to_memory", save_to_memory)

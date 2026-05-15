@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.responses import FileResponse
-from fastapi.staticfiles import StaticFiles
+
 
 from app.api.auth import router as auth_router
 from app.api.routes import create_router
@@ -34,7 +34,7 @@ app = FastAPI(
 app.include_router(auth_router, prefix="/api/v1")
 app.include_router(create_router(memory_manager), prefix="/api/v1")
 
-app.mount("/static", StaticFiles(directory="app/static"), name="static")
+
 
 
 @app.get("/")
